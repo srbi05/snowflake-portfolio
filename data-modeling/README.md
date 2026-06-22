@@ -1,53 +1,41 @@
-# Healthcare Data Warehouse — Snowflake Star Schema
+# Northside Regional Medical Center — BI Analytics Project
 
-## Overview
-A production-grade Snowflake data warehouse built for hospital operations,
-tracking patient admissions, bed management, discharge workflows, and 
-revenue cycle management across a multi-unit health system.
+## Project Overview
+End-to-end BI solution for a 750-bed hospital system built on 
+Snowflake + Power BI. Covers patient flow, revenue cycle, 
+predictive readmission risk, and patient sentiment analysis.
 
-## Business Problems Solved
-- Track patient admissions, transfers, and discharges (ADT) in real time
-- Monitor bed utilization and ICU capacity across floors and units
-- Identify and escalate discharge delays to reduce Length of Stay (LOS)
-- Analyze insurance claim denials and days-to-payment for revenue cycle teams
-- Flatten nested JSON diagnosis codes for downstream BI reporting (Power BI / Tableau)
+## Architecture
+- **Source:** Snowflake (HOSPITAL_DW) via DirectQuery
+- **Modeling:** Star schema — 4 fact/dimension tables
+- **Dashboards:** Power BI (4 pages including AI visuals)
+- **AI/ML:** Azure ML readmission scoring + Power BI 
+  Key Influencers, Anomaly Detection, Q&A visual
 
-## Schema Design
+## Key Technical Decisions
+| Decision | Choice | Reason |
+|---|---|---|
+| Connection mode | DirectQuery | Hospital data refreshes every 4hrs — Import would be stale |
+| JSON flattening | Snowflake LATERAL FLATTEN | Avoid performance hit of parsing VARIANT in Power Query |
+| LOS column | Added LOS_REALISTIC in Snowflake | RANDBETWEEN unsupported in DirectQuery — pushed to source |
+| Incremental refresh | PARTITION_MONTH in Snowflake | Reduced refresh window from full table to 1-month slice |
 
-### Fact Tables
-| Table | Description |
-|---|---|
-| `SNOW_ADT_FACT` | Core admission/discharge/transfer events per patient |
-| `SNOW_REVENUE_FACT` | Insurance claims, billed vs paid amounts, denial tracking |
+## Snowflake Objects
+| Object | Type | Purpose |
+|---|---|---|
+| SNOW_ADT_FACT | Table | Core patient admission/discharge records |
+| SNOW_BED_MASTER | Table | Unit capacity and targets |
+| SNOW_DISCHARGE_DELAYS | Table | Delay reason tracking |
+| SNOW_REVENUE_FACT | Table | Claims and denial management |
+| VW_ADT_WITH_DIAGNOSES | View | Flattened VARIANT JSON diagnoses |
 
-### Dimension Tables
-| Table | Description |
-|---|---|
-| `SNOW_BED_MASTER` | Bed inventory by unit, floor, type, and ICU flag |
+## Power BI Measures
+15 DAX measures across Bed Ops, Revenue, AI/ML, and NLP categories.
 
-### Supporting Tables
-| Table | Description |
-|---|---|
-| `SNOW_DISCHARGE_DELAYS` | Delay tracking with reason codes, nurse assignment, escalation |
-
-### Views
-| View | Description |
-|---|---|
-| `VW_ADT_WITH_DIAGNOSES` | Flattens VARIANT JSON diagnosis codes using LATERAL FLATTEN |
-
-## Key Snowflake Features Used
-- `VARIANT` column with `TRY_PARSE_JSON` for semi-structured JSON diagnosis codes
-- `LATERAL FLATTEN` to explode nested JSON arrays into rows
-- Partition columns (`PARTITION_MONTH`) for query pruning and performance
-- `ICU_FLAG`, `READMISSION_FLAG` for operational and clinical KPI tracking
-
-## Tech Stack
-- **Snowflake** — Data warehouse and transformation layer
-- **Power BI / Tableau** — Reporting and dashboard layer
-- **SQL** — DDL, views, and analytical queries
-
-## Domain
-Healthcare — Hospital Operations & Revenue Cycle Management
-
-## Experience Level
-18+ years in data engineering and analytics across healthcare data platforms
+## AI Scenarios Implemented
+- Key Influencers — LOS drivers
+- Decomposition Tree — Occupancy drill-down
+- Q&A Natural Language — Nursing staff
+- Anomaly Detection — Occupancy spike flagging
+- Smart Narrative — Executive summary
+- Patient Sentiment — NLP feedback scoring
