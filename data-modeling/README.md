@@ -37,5 +37,22 @@ predictive readmission risk, and patient sentiment analysis.
 - Decomposition Tree — Occupancy drill-down
 - Q&A Natural Language — Nursing staff
 - Anomaly Detection — Occupancy spike flagging
+
+## Challenges & How I Solved Them
+
+**Problem:** RANDBETWEEN() not supported in DirectQuery mode  
+**Solution:** Pushed LOS_REALISTIC as a computed column into 
+Snowflake using UNIFORM() + RANDOM() — correct pattern for 
+production environments where transformations belong at source
+
+**Problem:** Key Influencers visual returned no results  
+**Solution:** Diagnosed via DAX SUMMARIZE query — identified 
+insufficient LOS variance across units in synthetic data. 
+Fixed at Snowflake layer, not Power BI layer.
+
+**Problem:** Discharge_Delays PATIENT_ID had duplicates  
+**Solution:** Corrected relationship cardinality from One-to-One 
+to Many-to-One — one patient can have multiple delay events 
+across different admissions
 - Smart Narrative — Executive summary
 - Patient Sentiment — NLP feedback scoring
